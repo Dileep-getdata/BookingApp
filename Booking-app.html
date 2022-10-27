@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <h1>Booking App</h1>
+        <div>
+            <form  id="myForm" method="post">
+                <label for="username">User Name</label><br>
+                <input type="text" id="username" name="username" placeholder="Enter USERNAME"><br>
+                <label for="phoneno">Phone No</label><br>
+                <input type="tel" id="phoneno" name="phoneno" placeholder="Enter Phone No"><br>
+                <label for="email">Email</label><br>
+                <input type="email" id="email" name="email" placeholder="Enter EmailAdress"><br>
+                <button type="submit" id="submit">Submit</button>
+                <button style="display: none; background-color: green;" type="submit" id="update">Update</button>
+            </form>
+        </div>
+        <ul id="list-User">
+
+        </ul>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+<script>
+    const myForm=document.getElementById('myForm');
+    myForm.addEventListener('submit',userDetails);
+    async function userDetails(e){
+        e.preventDefault();
+        // console.log('Done');
+        
+        const username=e.target.username.value;
+        const phoneno=e.target.phoneno.value;
+        const email=e.target.email.value;
+        const obj={username,phoneno,email};
+        console.log(obj);
+        axios.post("http://localhost:3000/user/add-user",obj)
+        .then(response=>{
+            console.log(response.data.newUserDetails.username);
+            display(response.data.newUserDetails);
+        })
+        .catch((err)=>{
+            document.body.innerHTML=document.body.innerHTML+"<h4>Something went wrong</h4>";
+            console.log(err);
+        });
+        document.getElementById('username').value="";
+        document.getElementById('phoneno').value="";
+        document.getElementById('email').value="";
+    }
+// Edit Button function
+ 
+function editUser(prodId){
+    // console.log(prodId) 
+    
+    axios.get(`http://localhost:3000/user/edit-idPost/${prodId}`)
+    .then(response=>{
+        console.log(response);
+        document.getElementById('username').value=response.data.idDetails[0].username;
+        document.getElementById('phoneno').value=response.data.idDetails[0].phoneno;
+        document.getElementById('email').value=response.data.idDetails[0].email;
+        document.getElementById('submit').style.display='none';
+        document.getElementById('update').style.display='inline';
+    })
+    .catch(err=>{
+        console.log(err)
+    })    
+
+};
+
+
+// Delete the single user
+function delUser(prodId){
+    // console.log(prodId)     
+    axios.delete(`http://localhost:3000/user/delete-userId/${prodId}`)
+    .then(response=>{
+        console.log(response);
+    })
+    .catch(err=>console.log(err))
+}
+
+
+
+// DOM Content loaded( function to load page with list)
+document.addEventListener('DOMContentLoaded', async (event) => {
+    try{
+    const response= axios.get('http://localhost:3000/user/get-user')
+    .then(response=>{
+        for(var i=0;i<response.data.alluser.length;i++){
+            // console.log(response.data.alluser[i].id);
+            display(response.data.alluser[i]);
+        }
+    })                    
+    }
+    catch(err)
+        {console.log(err)};        
+       
+});
+
+    function display(data_obj){            
+            let represent=document.getElementById('list-User');
+            const li=`<li class="itemList" id=${data_obj.id}>${data_obj.username} - ${data_obj.phoneno} - ${data_obj.email}
+                
+                <button onclick="delUser('${data_obj.id}')" id="dlt_user" style="float:right;">Delete</button>
+                <button onclick="editUser('${data_obj.id}')" id="edit_user" style="float:right;">Edit expense</button>
+                
+                </li><br>`;
+            represent.innerHTML=represent.innerHTML+li;
+        }
+    
+       
+    
+</script>
+</html>
